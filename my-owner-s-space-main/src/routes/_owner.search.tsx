@@ -92,8 +92,8 @@ function SearchPage() {
             options={[{ value: "all", label: "Any" }, { value: "active", label: "Active" }, { value: "draft", label: "Draft" }, { value: "archived", label: "Archived" }]} />
 
           <div className="grid grid-cols-2 gap-2">
-            <div><Label>Min $</Label><Input type="number" value={minPrice} onChange={(e) => setMinPrice(e.target.value)} /></div>
-            <div><Label>Max $</Label><Input type="number" value={maxPrice} onChange={(e) => setMaxPrice(e.target.value)} /></div>
+            <div><Label>Min ₹</Label><Input type="number" value={minPrice} onChange={(e) => setMinPrice(e.target.value)} /></div>
+            <div><Label>Max ₹</Label><Input type="number" value={maxPrice} onChange={(e) => setMaxPrice(e.target.value)} /></div>
           </div>
 
           <label className="col-span-full flex items-center gap-2 text-sm">

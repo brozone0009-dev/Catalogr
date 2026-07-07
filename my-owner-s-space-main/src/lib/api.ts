@@ -85,7 +85,12 @@ const DEFAULT_API_BASE = "http://localhost:5000/api";
 function resolveApiBase() {
   const apiUrl = import.meta.env.VITE_API_URL as string | undefined;
   if (apiUrl) return apiUrl.replace(/\/$/, "");
-  if (isBrowser()) return `${window.location.origin}/api`;
+  if (isBrowser()) {
+    if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
+      return DEFAULT_API_BASE;
+    }
+    return `${window.location.origin}/api`;
+  }
   return DEFAULT_API_BASE;
 }
 
@@ -110,7 +115,9 @@ function ensureAuthOrRedirect() {
   return token;
 }
 
-const isBrowser = () => typeof window !== "undefined";
+function isBrowser() {
+  return typeof window !== "undefined";
+}
 const read = <T,>(k: string, fallback: T): T => {
   if (!isBrowser()) return fallback;
   try { return JSON.parse(localStorage.getItem(k) ?? "") as T; } catch { return fallback; }
@@ -191,6 +198,12 @@ export async function listProducts() {
 }
 export async function getProduct(id: string) {
   const res = await fetch(`${API_BASE}/products/${id}`, { headers: authHeaders() });
+  if (res.status === 404) return null;
+  if (!res.ok) throw new Error((await res.json()).error || res.statusText);
+  return res.json() as Promise<Product>;
+}
+export async function getPublicProduct(id: string) {
+  const res = await fetch(`${API_BASE}/public/products/${id}`);
   if (res.status === 404) return null;
   if (!res.ok) throw new Error((await res.json()).error || res.statusText);
   return res.json() as Promise<Product>;

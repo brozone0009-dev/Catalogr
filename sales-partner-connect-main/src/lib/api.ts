@@ -7,12 +7,19 @@
  */
 
 const DEFAULT_API_BASE = "http://localhost:5000/api";
-const isBrowser = () => typeof window !== "undefined";
+function isBrowser() {
+  return typeof window !== "undefined";
+}
 
 function resolveApiBase() {
   const apiUrl = import.meta.env.VITE_API_URL as string | undefined;
   if (apiUrl) return apiUrl.replace(/\/$/, "");
-  if (isBrowser()) return `${window.location.origin}/api`;
+  if (isBrowser()) {
+    if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
+      return DEFAULT_API_BASE;
+    }
+    return `${window.location.origin}/api`;
+  }
   return DEFAULT_API_BASE;
 }
 

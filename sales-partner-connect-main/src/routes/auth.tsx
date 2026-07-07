@@ -69,13 +69,13 @@ function AuthPage() {
           <form onSubmit={handleLogin} className="mt-8 space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
-              <Input id="email" name="email" type="email" required autoComplete="email" />
+              <Input id="email" name="email" type="email" required autoComplete="email" suppressHydrationWarning />
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
-              <Input id="password" name="password" type="password" required autoComplete="current-password" />
+              <Input id="password" name="password" type="password" required autoComplete="current-password" suppressHydrationWarning />
             </div>
-            <Button type="submit" className="w-full" disabled={busy}>
+            <Button type="submit" className="w-full" disabled={busy} suppressHydrationWarning>
               {busy ? "Signing in…" : "Sign in"}
             </Button>
           </form>

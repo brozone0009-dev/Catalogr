@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as OwnerRouteImport } from './routes/_owner'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as SShareCodeRouteImport } from './routes/s.$shareCode'
 import { Route as OwnerShareLinksRouteImport } from './routes/_owner.share-links'
 import { Route as OwnerSearchRouteImport } from './routes/_owner.search'
 import { Route as OwnerSalesmenRouteImport } from './routes/_owner.salesmen'
@@ -28,72 +29,65 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
-
 const OwnerRoute = OwnerRouteImport.update({
   id: '/_owner',
   getParentRoute: () => rootRouteImport,
 } as any)
-
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-
+const SShareCodeRoute = SShareCodeRouteImport.update({
+  id: '/s/$shareCode',
+  path: '/s/$shareCode',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const OwnerShareLinksRoute = OwnerShareLinksRouteImport.update({
   id: '/share-links',
   path: '/share-links',
   getParentRoute: () => OwnerRoute,
 } as any)
-
 const OwnerSearchRoute = OwnerSearchRouteImport.update({
   id: '/search',
   path: '/search',
   getParentRoute: () => OwnerRoute,
 } as any)
-
 const OwnerSalesmenRoute = OwnerSalesmenRouteImport.update({
   id: '/salesmen',
   path: '/salesmen',
   getParentRoute: () => OwnerRoute,
 } as any)
-
 const OwnerProductsRoute = OwnerProductsRouteImport.update({
   id: '/products',
   path: '/products',
   getParentRoute: () => OwnerRoute,
 } as any)
-
 const OwnerOrdersRoute = OwnerOrdersRouteImport.update({
   id: '/orders',
   path: '/orders',
   getParentRoute: () => OwnerRoute,
 } as any)
-
 const OwnerMakeOrdersRoute = OwnerMakeOrdersRouteImport.update({
   id: '/make-orders',
   path: '/make-orders',
   getParentRoute: () => OwnerRoute,
 } as any)
-
 const OwnerDashboardRoute = OwnerDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
   getParentRoute: () => OwnerRoute,
 } as any)
-
 const OwnerCustomersRoute = OwnerCustomersRouteImport.update({
   id: '/customers',
   path: '/customers',
   getParentRoute: () => OwnerRoute,
 } as any)
-
 const OwnerCompaniesRoute = OwnerCompaniesRouteImport.update({
   id: '/companies',
   path: '/companies',
   getParentRoute: () => OwnerRoute,
 } as any)
-
 const OwnerCategoriesRoute = OwnerCategoriesRouteImport.update({
   id: '/categories',
   path: '/categories',
@@ -113,8 +107,8 @@ export interface FileRoutesByFullPath {
   '/salesmen': typeof OwnerSalesmenRoute
   '/search': typeof OwnerSearchRoute
   '/share-links': typeof OwnerShareLinksRoute
+  '/s/$shareCode': typeof SShareCodeRoute
 }
-
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
@@ -128,8 +122,8 @@ export interface FileRoutesByTo {
   '/salesmen': typeof OwnerSalesmenRoute
   '/search': typeof OwnerSearchRoute
   '/share-links': typeof OwnerShareLinksRoute
+  '/s/$shareCode': typeof SShareCodeRoute
 }
-
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
@@ -145,8 +139,8 @@ export interface FileRoutesById {
   '/_owner/salesmen': typeof OwnerSalesmenRoute
   '/_owner/search': typeof OwnerSearchRoute
   '/_owner/share-links': typeof OwnerShareLinksRoute
+  '/s/$shareCode': typeof SShareCodeRoute
 }
-
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
@@ -162,6 +156,7 @@ export interface FileRouteTypes {
     | '/salesmen'
     | '/search'
     | '/share-links'
+    | '/s/$shareCode'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -176,6 +171,7 @@ export interface FileRouteTypes {
     | '/salesmen'
     | '/search'
     | '/share-links'
+    | '/s/$shareCode'
   id:
     | '__root__'
     | '/'
@@ -191,13 +187,14 @@ export interface FileRouteTypes {
     | '/_owner/salesmen'
     | '/_owner/search'
     | '/_owner/share-links'
+    | '/s/$shareCode'
   fileRoutesById: FileRoutesById
 }
-
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   OwnerRoute: typeof OwnerRouteWithChildren
   AuthRoute: typeof AuthRoute
+  SShareCodeRoute: typeof SShareCodeRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -221,6 +218,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/s/$shareCode': {
+      id: '/s/$shareCode'
+      path: '/s/$shareCode'
+      fullPath: '/s/$shareCode'
+      preLoaderRoute: typeof SShareCodeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_owner/share-links': {
@@ -328,18 +332,8 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   OwnerRoute: OwnerRouteWithChildren,
   AuthRoute: AuthRoute,
+  SShareCodeRoute: SShareCodeRoute,
 }
-
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
