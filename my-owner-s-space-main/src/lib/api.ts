@@ -80,8 +80,16 @@ export type ShareLink = {
 
 const K = { session: "owner_session" };
 
-// Default to local backend during development. Override with `VITE_API_URL` in production or env.
-const API_BASE = (import.meta.env.VITE_API_URL as string | undefined) ?? "http://localhost:5000/api";
+const DEFAULT_API_BASE = "http://localhost:5000/api";
+
+function resolveApiBase() {
+  const apiUrl = import.meta.env.VITE_API_URL as string | undefined;
+  if (apiUrl) return apiUrl.replace(/\/$/, "");
+  if (isBrowser()) return `${window.location.origin}/api`;
+  return DEFAULT_API_BASE;
+}
+
+const API_BASE = resolveApiBase();
 
 function authHeaders(extra: Record<string, string> = {}) {
   const token = isBrowser() ? localStorage.getItem("token") : null;
@@ -204,28 +212,32 @@ export async function deleteProduct(id: string) {
 }
 
 export async function uploadProductImage(file: File) {
-  const apiUrl = import.meta.env.VITE_API_URL as string | undefined;
-  if (apiUrl) {
-    const formData = new FormData();
-    formData.append("image", file);
-    const token = isBrowser() ? localStorage.getItem("token") : null;
-    const response = await fetch(`${apiUrl}/products/upload`, {
-      method: "POST",
-      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-      body: formData,
-    });
-    if (!response.ok) throw new Error((await response.json()).error || response.statusText);
-    const data = await response.json() as { url: string };
+  const formData = new FormData();
+  formData.append("image", file);
+  const token = isBrowser() ? localStorage.getItem("token") : null;
+  const response = await fetch(`${API_BASE}/products/upload`, {
+    method: "POST",
+    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    body: formData,
+  });
+
+  if (response.ok) {
+    const data = (await response.json()) as { url: string };
     return data.url;
   }
-  // Fallback for local dev: return a data URL (persistable) instead of a blob URL
-  const dataUrl = await new Promise<string>((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result ?? ""));
-    reader.onerror = (err) => reject(err);
-    reader.readAsDataURL(file);
-  });
-  return delay(dataUrl);
+
+  if (!import.meta.env.VITE_API_URL && isBrowser()) {
+    // Fallback for local dev: return a data URL (persistable) instead of a blob URL.
+    const dataUrl = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result ?? ""));
+      reader.onerror = (err) => reject(err);
+      reader.readAsDataURL(file);
+    });
+    return delay(dataUrl);
+  }
+
+  throw new Error((await response.json().catch(() => ({})))?.error || response.statusText);
 }
 
 // ---------- orders ----------

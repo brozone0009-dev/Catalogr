@@ -397,6 +397,21 @@ export function errorHandler(err, _req, res, _next) {
    localStorage.setItem("token", token);
    ```
 
+## 11b. Frontend deployment settings
+
+Both frontends must point at the same backend API.
+
+- `my-owner-s-space-main/.env`: `VITE_API_URL=http://localhost:5000/api`
+- `sales-partner-connect-main/.env`: `VITE_API_URL=http://localhost:5000/api`
+
+For production, replace those with the deployed API origin, for example:
+
+- `VITE_API_URL=https://api.example.com/api`
+
+Set `CORS_ORIGIN` on the backend to a comma-separated allowlist of both frontend origins.
+
+- `CORS_ORIGIN=https://owner.example.com,https://sales.example.com`
+
 ## 12. Deploy checklist
 
 - MongoDB Atlas cluster + IP allow list

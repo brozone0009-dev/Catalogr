@@ -15,6 +15,7 @@ const OrderItemSchema = new mongoose.Schema(
 const OrderSchema = new mongoose.Schema(
   {
     ownerId: { type: mongoose.Schema.Types.ObjectId, ref: "Owner", required: true, index: true },
+    salesmanId: { type: mongoose.Schema.Types.ObjectId, ref: "Salesman", index: true },
     customerId: { type: mongoose.Schema.Types.ObjectId, ref: "Customer" },
     customerName: { type: String, required: true },
     customerPhone: String,
