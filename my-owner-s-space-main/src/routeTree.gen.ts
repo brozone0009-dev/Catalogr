@@ -14,6 +14,7 @@ import { Route as OwnerRouteImport } from './routes/_owner'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as OwnerShareLinksRouteImport } from './routes/_owner.share-links'
 import { Route as OwnerSearchRouteImport } from './routes/_owner.search'
+import { Route as OwnerSalesmenRouteImport } from './routes/_owner.salesmen'
 import { Route as OwnerProductsRouteImport } from './routes/_owner.products'
 import { Route as OwnerOrdersRouteImport } from './routes/_owner.orders'
 import { Route as OwnerMakeOrdersRouteImport } from './routes/_owner.make-orders'
@@ -27,55 +28,72 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
+
 const OwnerRoute = OwnerRouteImport.update({
   id: '/_owner',
   getParentRoute: () => rootRouteImport,
 } as any)
+
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+
 const OwnerShareLinksRoute = OwnerShareLinksRouteImport.update({
   id: '/share-links',
   path: '/share-links',
   getParentRoute: () => OwnerRoute,
 } as any)
+
 const OwnerSearchRoute = OwnerSearchRouteImport.update({
   id: '/search',
   path: '/search',
   getParentRoute: () => OwnerRoute,
 } as any)
+
+const OwnerSalesmenRoute = OwnerSalesmenRouteImport.update({
+  id: '/salesmen',
+  path: '/salesmen',
+  getParentRoute: () => OwnerRoute,
+} as any)
+
 const OwnerProductsRoute = OwnerProductsRouteImport.update({
   id: '/products',
   path: '/products',
   getParentRoute: () => OwnerRoute,
 } as any)
+
 const OwnerOrdersRoute = OwnerOrdersRouteImport.update({
   id: '/orders',
   path: '/orders',
   getParentRoute: () => OwnerRoute,
 } as any)
+
 const OwnerMakeOrdersRoute = OwnerMakeOrdersRouteImport.update({
   id: '/make-orders',
   path: '/make-orders',
   getParentRoute: () => OwnerRoute,
 } as any)
+
 const OwnerDashboardRoute = OwnerDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
   getParentRoute: () => OwnerRoute,
 } as any)
+
 const OwnerCustomersRoute = OwnerCustomersRouteImport.update({
   id: '/customers',
   path: '/customers',
   getParentRoute: () => OwnerRoute,
 } as any)
+
 const OwnerCompaniesRoute = OwnerCompaniesRouteImport.update({
   id: '/companies',
   path: '/companies',
   getParentRoute: () => OwnerRoute,
 } as any)
+
 const OwnerCategoriesRoute = OwnerCategoriesRouteImport.update({
   id: '/categories',
   path: '/categories',
@@ -92,9 +110,11 @@ export interface FileRoutesByFullPath {
   '/make-orders': typeof OwnerMakeOrdersRoute
   '/orders': typeof OwnerOrdersRoute
   '/products': typeof OwnerProductsRoute
+  '/salesmen': typeof OwnerSalesmenRoute
   '/search': typeof OwnerSearchRoute
   '/share-links': typeof OwnerShareLinksRoute
 }
+
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
@@ -105,9 +125,11 @@ export interface FileRoutesByTo {
   '/make-orders': typeof OwnerMakeOrdersRoute
   '/orders': typeof OwnerOrdersRoute
   '/products': typeof OwnerProductsRoute
+  '/salesmen': typeof OwnerSalesmenRoute
   '/search': typeof OwnerSearchRoute
   '/share-links': typeof OwnerShareLinksRoute
 }
+
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
@@ -120,9 +142,11 @@ export interface FileRoutesById {
   '/_owner/make-orders': typeof OwnerMakeOrdersRoute
   '/_owner/orders': typeof OwnerOrdersRoute
   '/_owner/products': typeof OwnerProductsRoute
+  '/_owner/salesmen': typeof OwnerSalesmenRoute
   '/_owner/search': typeof OwnerSearchRoute
   '/_owner/share-links': typeof OwnerShareLinksRoute
 }
+
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
@@ -135,6 +159,7 @@ export interface FileRouteTypes {
     | '/make-orders'
     | '/orders'
     | '/products'
+    | '/salesmen'
     | '/search'
     | '/share-links'
   fileRoutesByTo: FileRoutesByTo
@@ -148,6 +173,7 @@ export interface FileRouteTypes {
     | '/make-orders'
     | '/orders'
     | '/products'
+    | '/salesmen'
     | '/search'
     | '/share-links'
   id:
@@ -162,10 +188,12 @@ export interface FileRouteTypes {
     | '/_owner/make-orders'
     | '/_owner/orders'
     | '/_owner/products'
+    | '/_owner/salesmen'
     | '/_owner/search'
     | '/_owner/share-links'
   fileRoutesById: FileRoutesById
 }
+
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   OwnerRoute: typeof OwnerRouteWithChildren
@@ -207,6 +235,13 @@ declare module '@tanstack/react-router' {
       path: '/search'
       fullPath: '/search'
       preLoaderRoute: typeof OwnerSearchRouteImport
+      parentRoute: typeof OwnerRoute
+    }
+    '/_owner/salesmen': {
+      id: '/_owner/salesmen'
+      path: '/salesmen'
+      fullPath: '/salesmen'
+      preLoaderRoute: typeof OwnerSalesmenRouteImport
       parentRoute: typeof OwnerRoute
     }
     '/_owner/products': {
@@ -269,6 +304,7 @@ interface OwnerRouteChildren {
   OwnerMakeOrdersRoute: typeof OwnerMakeOrdersRoute
   OwnerOrdersRoute: typeof OwnerOrdersRoute
   OwnerProductsRoute: typeof OwnerProductsRoute
+  OwnerSalesmenRoute: typeof OwnerSalesmenRoute
   OwnerSearchRoute: typeof OwnerSearchRoute
   OwnerShareLinksRoute: typeof OwnerShareLinksRoute
 }
@@ -281,6 +317,7 @@ const OwnerRouteChildren: OwnerRouteChildren = {
   OwnerMakeOrdersRoute: OwnerMakeOrdersRoute,
   OwnerOrdersRoute: OwnerOrdersRoute,
   OwnerProductsRoute: OwnerProductsRoute,
+  OwnerSalesmenRoute: OwnerSalesmenRoute,
   OwnerSearchRoute: OwnerSearchRoute,
   OwnerShareLinksRoute: OwnerShareLinksRoute,
 }
@@ -292,6 +329,7 @@ const rootRouteChildren: RootRouteChildren = {
   OwnerRoute: OwnerRouteWithChildren,
   AuthRoute: AuthRoute,
 }
+
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
