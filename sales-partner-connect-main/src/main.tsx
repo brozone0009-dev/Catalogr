@@ -5,8 +5,8 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { getRouter } from "./router";
 import "./styles.css";
 
-const router = getRouter();
-const queryClient = router.context.queryClient;
+// Destructure both router and queryClient
+const { router, queryClient } = getRouter();
 
 const rootElement = document.getElementById("root");
 

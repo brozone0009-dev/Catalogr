@@ -53,8 +53,6 @@ function ProductImage({ src, alt, className }: { src?: string; alt: string; clas
       src={fixedSrc}
       alt={alt}
       className={className}
-      referrerPolicy="no-referrer"
-      crossOrigin="anonymous"
       onError={() => {
         console.error(`Failed to load image: ${fixedSrc}`);
         setError(true);
