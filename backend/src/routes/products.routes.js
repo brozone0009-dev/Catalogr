@@ -6,7 +6,15 @@ import { requireAuth } from "../middleware/auth.js";
 import { uploadBufferToCloudinary } from "../lib/cloudinary.js";
 
 const router = Router();
-const upload = multer({ storage: multer.memoryStorage() });
+
+// Configure multer to use memory storage
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 5 * 1024 * 1024 // 5MB limit
+  }
+});
+
 router.use(requireAuth);
 
 router.get("/", async (req, res) => {
@@ -35,7 +43,6 @@ router.get("/:id", async (req, res) => {
 
 router.post("/", async (req, res) => {
   const body = { ...req.body };
-  // normalize variants: if _id is a 24-hex string convert to ObjectId, otherwise remove it so mongoose creates one
   if (Array.isArray(body.variants)) {
     body.variants = body.variants.map((v) => {
       const copy = { ...v };
@@ -74,14 +81,27 @@ router.delete("/:id", async (req, res) => {
 
 router.post("/upload", upload.single("image"), async (req, res, next) => {
   try {
-    if (!req.file) return res.status(400).json({ error: "Image is required" });
+    console.log("Upload request received");
+
+    if (!req.file) {
+      console.error("Upload Error: No file in request. Check if the field name is 'image'");
+      return res.status(400).json({ error: "Image file is required" });
+    }
+
+    console.log(`Uploading file: ${req.file.originalname} (${req.file.size} bytes)`);
+
     const result = await uploadBufferToCloudinary(req.file.buffer, {
       folder: "catalogr/products",
-      resource_type: "image",
     });
+
+    console.log("Cloudinary upload successful:", result.secure_url);
     res.status(201).json({ url: result.secure_url });
   } catch (error) {
-    next(error);
+    console.error("Route Upload Error:", error);
+    res.status(500).json({
+      error: "Failed to upload image to Cloudinary",
+      details: error.message
+    });
   }
 });
 

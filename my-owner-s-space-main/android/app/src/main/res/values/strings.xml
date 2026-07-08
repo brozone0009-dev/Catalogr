@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Catalogr Owner</string>
+    <string name="title_activity_main">Catalogr Owner</string>
+    <string name="package_name">com.catalogr.owner</string>
+    <string name="custom_url_scheme">com.catalogr.owner</string>
+</resources>

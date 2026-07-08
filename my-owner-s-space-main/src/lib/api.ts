@@ -1,10 +1,5 @@
 /**
- * Mock API layer backed by localStorage.
- *
- * This mirrors the REST shape of the MERN backend described in
- * BACKEND_GUIDE.md so swapping to real fetch() calls is a 1:1 replacement.
- *
- * To swap: replace each function body with `fetch(\`${API_URL}/...\`)` calls.
+ * API layer.
  */
 
 export type Owner = {
@@ -84,17 +79,56 @@ const DEFAULT_API_BASE = "http://localhost:5000/api";
 
 function resolveApiBase() {
   const apiUrl = import.meta.env.VITE_API_URL as string | undefined;
-  if (apiUrl) return apiUrl.replace(/\/$/, "");
+  const isCapacitor = typeof window !== "undefined" && 
+    (window.location.protocol === "capacitor:" || !!(window as any).Capacitor);
+
+  if (apiUrl) {
+    return apiUrl.replace(/\/$/, "");
+  }
+
   if (isBrowser()) {
-    if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
+    const hostname = window.location.hostname;
+    if (hostname === "localhost" || hostname === "127.0.0.1") {
       return DEFAULT_API_BASE;
     }
-    return `${window.location.origin}/api`;
+    return DEFAULT_API_BASE;
   }
   return DEFAULT_API_BASE;
 }
 
-const API_BASE = resolveApiBase();
+export const API_BASE = resolveApiBase();
+
+/**
+ * Fixes a URL to be absolute and reachable from the app.
+ * Forces HTTPS for Cloudinary and handles localhost on mobile.
+ */
+export function fixUrl(url?: string) {
+  if (!url) return url;
+  if (url.startsWith("data:") || url.startsWith("blob:")) return url;
+
+  let finalUrl = url;
+
+  // 1. Force HTTPS for Cloudinary to avoid Mixed Content blocks in mobile WebViews
+  if (finalUrl.includes("res.cloudinary.com")) {
+    finalUrl = finalUrl.replace(/^http:/, "https:");
+  }
+
+  // 2. Handle absolute URLs (fix localhost for emulator)
+  if (finalUrl.startsWith("http")) {
+    const isCapacitor = typeof window !== "undefined" &&
+      (window.location.protocol === "capacitor:" || !!(window as any).Capacitor);
+
+    if (isCapacitor && (finalUrl.includes("localhost") || finalUrl.includes("127.0.0.1"))) {
+      finalUrl = finalUrl.replace("localhost", "10.0.2.2").replace("127.0.0.1", "10.0.2.2");
+    }
+    return finalUrl;
+  }
+
+  // 3. Prepend API base for relative paths
+  const base = API_BASE.replace(/\/api$/, "");
+  const normalizedPath = url.startsWith("/") ? url : `/${url}`;
+  return `${base}${normalizedPath}`;
+}
 
 function authHeaders(extra: Record<string, string> = {}) {
   const token = isBrowser() ? localStorage.getItem("token") : null;
@@ -107,7 +141,6 @@ function ensureAuthOrRedirect() {
     if (isBrowser()) {
       localStorage.removeItem("token");
       localStorage.removeItem("owner_session");
-      // navigate to auth page
       window.location.replace("/auth");
     }
     throw new Error("Unauthorized");
@@ -123,7 +156,6 @@ const read = <T,>(k: string, fallback: T): T => {
   try { return JSON.parse(localStorage.getItem(k) ?? "") as T; } catch { return fallback; }
 };
 const write = (k: string, v: unknown) => { if (isBrowser()) localStorage.setItem(k, JSON.stringify(v)); };
-const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
 const delay = <T,>(v: T) => new Promise<T>((r) => setTimeout(() => r(v), 120));
 
 // ---------- session ----------
@@ -228,29 +260,34 @@ export async function uploadProductImage(file: File) {
   const formData = new FormData();
   formData.append("image", file);
   const token = isBrowser() ? localStorage.getItem("token") : null;
-  const response = await fetch(`${API_BASE}/products/upload`, {
-    method: "POST",
-    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-    body: formData,
-  });
 
-  if (response.ok) {
-    const data = (await response.json()) as { url: string };
-    return data.url;
-  }
-
-  if (!import.meta.env.VITE_API_URL && isBrowser()) {
-    // Fallback for local dev: return a data URL (persistable) instead of a blob URL.
-    const dataUrl = await new Promise<string>((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(String(reader.result ?? ""));
-      reader.onerror = (err) => reject(err);
-      reader.readAsDataURL(file);
+  try {
+    const response = await fetch(`${API_BASE}/products/upload`, {
+      method: "POST",
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      body: formData,
     });
-    return delay(dataUrl);
-  }
 
-  throw new Error((await response.json().catch(() => ({})))?.error || response.statusText);
+    if (response.ok) {
+      const data = (await response.json()) as { url: string };
+      return data.url;
+    }
+
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.error || errorData.details || response.statusText);
+  } catch (error) {
+    console.error("Upload error:", error);
+    if (!import.meta.env.VITE_API_URL && isBrowser()) {
+      const dataUrl = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result ?? ""));
+        reader.onerror = (err) => reject(err);
+        reader.readAsDataURL(file);
+      });
+      return delay(dataUrl);
+    }
+    throw error;
+  }
 }
 
 // ---------- orders ----------

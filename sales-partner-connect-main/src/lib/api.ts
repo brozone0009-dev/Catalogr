@@ -13,9 +13,20 @@ function isBrowser() {
 
 function resolveApiBase() {
   const apiUrl = import.meta.env.VITE_API_URL as string | undefined;
-  if (apiUrl) return apiUrl.replace(/\/$/, "");
+  const isCapacitor = typeof window !== "undefined" && 
+    (window.location.protocol === "capacitor:" || !!(window as any).Capacitor);
+
+  if (apiUrl) {
+    if (isCapacitor && (apiUrl.includes("localhost") || apiUrl.includes("127.0.0.1"))) {
+      console.warn("WARNING: Running in Capacitor but VITE_API_URL points to localhost. It may fail to connect to your live backend.");
+    }
+    return apiUrl.replace(/\/$/, "");
+  }
   if (isBrowser()) {
     if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
+      if (isCapacitor) {
+        console.warn("WARNING: resolveApiBase fallback to local API base inside Capacitor. Configure VITE_API_URL.");
+      }
       return DEFAULT_API_BASE;
     }
     return `${window.location.origin}/api`;

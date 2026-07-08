@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { OwnerShell } from "@/components/owner-shell";
 import { listProducts, listOrders, listCategories, listCompanies, seedDemoOrder } from "@/lib/api";
 import { toast } from "sonner";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export const Route = createFileRoute("/_owner/dashboard")({
   head: () => ({ meta: [{ title: "Dashboard — Catalogr" }] }),
@@ -15,6 +16,7 @@ export const Route = createFileRoute("/_owner/dashboard")({
 });
 
 function Dashboard() {
+  const isMobile = useIsMobile();
   const products = useQuery({ queryKey: ["products"], queryFn: listProducts });
   const orders = useQuery({ queryKey: ["orders"], queryFn: listOrders });
   const categories = useQuery({ queryKey: ["categories"], queryFn: listCategories });
@@ -35,16 +37,23 @@ function Dashboard() {
     <OwnerShell
       title="Dashboard"
       action={
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={async () => {
-            try { await seedDemoOrder(); toast.success("Demo order created"); orders.refetch(); }
-            catch (e) { toast.error((e as Error).message); }
-          }}
-        >
-          Simulate incoming order
-        </Button>
+        !isMobile && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={async () => {
+              try {
+                await seedDemoOrder();
+                toast.success("Demo order created");
+                orders.refetch();
+              } catch (e) {
+                toast.error((e as Error).message);
+              }
+            }}
+          >
+            Simulate incoming order
+          </Button>
+        )
       }
     >
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -101,18 +110,26 @@ function Dashboard() {
         </Card>
 
         <Card className="shadow-soft">
-          <CardHeader><CardTitle className="flex items-center gap-2"><AlertTriangle className="h-4 w-4 text-warning" /> Low stock</CardTitle></CardHeader>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-4 w-4 text-warning" /> Low stock
+            </CardTitle>
+          </CardHeader>
           <CardContent>
             {lowStock.length > 0 ? (
               <ul className="space-y-2">
                 {lowStock.slice(0, 8).map(({ p, v }) => (
                   <li key={v._id} className="flex items-center justify-between rounded-md bg-muted/50 px-3 py-2 text-sm">
-                    <span className="truncate">{p.name} · {v.color}/{v.size}</span>
+                    <span className="truncate">
+                      {p.name} · {v.color}/{v.size}
+                    </span>
                     <span className="font-medium text-warning-foreground">{v.stock} left</span>
                   </li>
                 ))}
               </ul>
-            ) : <EmptyHint text="All stock levels healthy." />}
+            ) : (
+              <EmptyHint text="All stock levels healthy." />
+            )}
             <div className="mt-4 rounded-md border border-dashed border-border p-3 text-xs text-muted-foreground">
               Accepted orders: <span className="font-medium text-foreground">₹{revenue.toFixed(2)}</span> total
             </div>
@@ -124,7 +141,11 @@ function Dashboard() {
 }
 
 function EmptyHint({ text }: { text: string }) {
-  return <div className="rounded-md border border-dashed border-border p-6 text-center text-sm text-muted-foreground">{text}</div>;
+  return (
+    <div className="rounded-md border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
+      {text}
+    </div>
+  );
 }
 
 function StatusBadge({ status }: { status: "pending" | "accepted" | "rejected" }) {

@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { Plus, Pencil, Trash2, X, ShoppingCart, Upload } from "lucide-react";
+import { Plus, Pencil, Trash2, X, ShoppingCart, Upload, ImageOff } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -14,13 +14,55 @@ import { Badge } from "@/components/ui/badge";
 import { OwnerShell } from "@/components/owner-shell";
 import {
   listProducts, listCategories, listCompanies, upsertProduct, deleteProduct, uploadProductImage,
-  type Product, type Variant,
+  fixUrl, type Product, type Variant,
 } from "@/lib/api";
 
 export const Route = createFileRoute("/_owner/products")({
   head: () => ({ meta: [{ title: "Products — Catalogr" }] }),
   component: ProductsPage,
 });
+
+function ProductImage({ src, alt, className }: { src?: string; alt: string; className?: string }) {
+  const [error, setError] = useState(false);
+  const fixedSrc = fixUrl(src);
+
+  if (!fixedSrc) {
+    return (
+      <div className={`flex items-center justify-center bg-muted text-muted-foreground ${className}`}>
+        <div className="flex flex-col items-center gap-1">
+          <ImageOff className="h-8 w-8 opacity-20" />
+          <span className="text-[10px] uppercase tracking-wider opacity-40">No image</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className={`flex items-center justify-center bg-muted text-destructive/50 ${className}`}>
+        <div className="flex flex-col items-center gap-1">
+          <ImageOff className="h-8 w-8" />
+          <span className="text-[10px] uppercase tracking-wider">Load failed</span>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <img
+      src={fixedSrc}
+      alt={alt}
+      className={className}
+      referrerPolicy="no-referrer"
+      crossOrigin="anonymous"
+      onError={() => {
+        console.error(`Failed to load image: ${fixedSrc}`);
+        setError(true);
+      }}
+      loading="lazy"
+    />
+  );
+}
 
 function ProductsPage() {
   const qc = useQueryClient();
@@ -50,13 +92,9 @@ function ProductsPage() {
       {products.data && products.data.length > 0 ? (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {products.data.map((p) => (
-            <Card key={p._id} className="overflow-hidden shadow-soft cursor-pointer" onClick={() => { setDetailsProduct(p); setDetailsOpen(true); }}>
-              <div className="aspect-video w-full overflow-hidden bg-muted">
-                {p.image ? (
-                  <img src={p.image} alt={p.name} className="h-full w-full object-cover" />
-                ) : (
-                  <div className="flex h-full items-center justify-center text-xs text-muted-foreground">No image</div>
-                )}
+            <Card key={p._id} className="overflow-hidden shadow-soft cursor-pointer group" onClick={() => { setDetailsProduct(p); setDetailsOpen(true); }}>
+              <div className="aspect-video w-full overflow-hidden bg-muted border-b">
+                <ProductImage src={p.image} alt={p.name} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
               </div>
               <CardContent className="p-5">
                 <div className="flex items-start justify-between gap-2">
@@ -74,11 +112,11 @@ function ProductsPage() {
                   <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); setEditing(p); setOpen(true); }}>
                     <Pencil className="mr-1 h-3 w-3" /> Edit
                   </Button>
-                  <Button variant="outline" size="sm" onClick={() => window.location.assign(`/make-orders?productId=${p._id}`)}>
+                  <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); window.location.assign(`/make-orders?productId=${p._id}`); }}>
                     <ShoppingCart className="mr-1 h-3 w-3" /> Make order
                   </Button>
-                  <Button variant="ghost" size="sm" onClick={() => del.mutate(p._id)}>
-                    <Trash2 className="mr-1 h-3 w-3" /> Delete
+                  <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); del.mutate(p._id); }}>
+                    <Trash2 className="mr-1 h-3 w-3 text-destructive" /> Delete
                   </Button>
                 </div>
               </CardContent>
@@ -124,8 +162,8 @@ function ProductDetailsDialog({ open, onOpenChange, product, categories, compani
         <DialogHeader><DialogTitle>Product details</DialogTitle></DialogHeader>
         <div className="space-y-4 p-2">
           <div className="flex items-start gap-4">
-            <div className="w-40 h-28 bg-muted overflow-hidden">
-              {product.image ? <img src={product.image} alt={product.name} className="w-full h-full object-cover" /> : <div className="p-4 text-xs text-muted-foreground">No image</div>}
+            <div className="w-40 h-28 bg-muted overflow-hidden rounded-md border">
+              <ProductImage src={product.image} alt={product.name} className="w-full h-full object-cover" />
             </div>
             <div>
               <div className="font-semibold text-lg">{product.name}</div>
@@ -265,6 +303,11 @@ function ProductDialog({
                   />
                 </label>
               </div>
+              {image && (
+                <div className="mt-2 h-20 w-32 overflow-hidden rounded-md border">
+                  <ProductImage src={image} alt="Preview" className="h-full w-full object-cover" />
+                </div>
+              )}
             </div>
           </div>
 
