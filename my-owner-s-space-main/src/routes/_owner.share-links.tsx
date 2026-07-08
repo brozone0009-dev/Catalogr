@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { listShareLinks, createShareLink, deleteShareLink, listProducts, type ShareLink } from "@/lib/api";
+import { listShareLinks, createShareLink, deleteShareLink, listProducts, resolveShareOrigin, type ShareLink } from "@/lib/api";
 
 export const Route = createFileRoute("/_owner/share-links")({
   head: () => ({ meta: [{ title: "Share Links — Catalogr" }] }),
@@ -54,7 +54,7 @@ function ShareLinksPage() {
       {q.data && q.data.length > 0 ? (
         <div className="space-y-3">
           {q.data.map((l) => {
-            const url = `${typeof window !== "undefined" ? window.location.origin : ""}/s/${l.shareCode}`;
+            const url = `${resolveShareOrigin()}/s/${l.shareCode}`;
             const expired = new Date(l.expiresAt) < new Date();
             return (
               <Card key={l._id} className="shadow-soft">

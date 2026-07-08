@@ -98,10 +98,16 @@ function resolveApiBase() {
 
 export const API_BASE = resolveApiBase();
 
-/**
- * Fixes a URL to be absolute and reachable from the app.
- * Forces HTTPS for Cloudinary and handles localhost on mobile.
- */
+export function resolveShareOrigin() {
+  if (typeof window === "undefined") return "";
+  const origin = window.location.origin;
+  const isCapacitor = window.location.protocol === "capacitor:" || !!(window as any).Capacitor;
+  if (isCapacitor || origin === "http://localhost" || origin === "capacitor://localhost") {
+    return "https://catlogr-owner.vercel.app";
+  }
+  return origin;
+}
+
 export function fixUrl(url?: string) {
   if (!url) return url;
   if (url.startsWith("data:") || url.startsWith("blob:")) return url;

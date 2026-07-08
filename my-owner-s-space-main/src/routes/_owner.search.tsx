@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { listProducts, listCategories, listCompanies, createShareLink } from "@/lib/api";
+import { listProducts, listCategories, listCompanies, createShareLink, resolveShareOrigin } from "@/lib/api";
 
 export const Route = createFileRoute("/_owner/search")({
   head: () => ({ meta: [{ title: "Search — Catalogr" }] }),
@@ -48,7 +48,7 @@ function SearchPage() {
   const share = useMutation({
     mutationFn: createShareLink,
     onSuccess: (link) => {
-      const url = `${window.location.origin}/s/${link.shareCode}`;
+      const url = `${resolveShareOrigin()}/s/${link.shareCode}`;
       navigator.clipboard.writeText(url).catch(() => {});
       toast.success("Share link created and copied to clipboard");
       qc.invalidateQueries({ queryKey: ["share-links"] });
